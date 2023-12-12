@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+ 
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>jQuery Layout</title>
+
+    <style>
+
+        body {
+
+            margin: 0;
+
+            font-family: Arial, sans-serif;
+
+            background-color: #252424;
+           
+
+        }
+
+input{
+
+    border: 1px solid red;
+
+    padding: 5px;
+
+    border-radius: 4px;
+
+}
+
+        #menu {
+
+            display: none;
+
+            position: fixed;
+
+            top: 0;
+
+            right: 0;
+
+            width: 250px;
+
+            height: 100%;
+
+            background-color: #f4f4f4;
+
+            padding: 20px;
+
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+
+            overflow-y: auto;
+
+        }
+
+ 
+
+        #openMenu {
+
+            position: fixed;
+
+            top: 20px;
+
+            right: 20px;
+
+            padding: 10px;
+
+            background-color: #3498db;
+
+            color: #fff;
+
+            border: none;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+        }
+
+ 
+
+        #openMenu:hover {
+
+            background-color: #2980b9;
+
+        }
+
+ 
+
+        .car-info {
+
+            border: 1px solid #ddd;
+
+            padding: 10px;
+
+            margin-bottom: 10px;
+margin-left: 20px;
+            width: 400px;
+
+            height: 400px;
+            text-align: center;
+            background-color: white;
+
+        }
+
+ 
+
+        .car-info img {
+
+            width: 100%;
+
+            height: 50%;
+
+            object-fit: contain;
+
+        }
+
+ 
+
+        #carsContainer {
+
+            position: fixed;
+
+            top: 0;
+
+            width: calc(100% - 300px);
+
+            height: 100%;
+
+            padding: 20px;
+
+            box-sizing: border-box;
+
+            overflow-y: auto;
+
+            max-width: calc(100% - 300px);
+
+            display: flex;
+
+            flex-wrap: wrap;
+            margin-top: 30px;
+
+        }
+
+ 
+
+        #carForm label,
+
+        #carForm input,
+
+        #carForm button {
+
+            display: block;
+
+            margin-bottom: 10px;
+
+        }
+
+ 
+
+        #carForm button {
+
+            padding: 8px;
+
+            background-color: #2ecc71;
+
+            color: #fff;
+
+            border: none;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+        }
+
+ 
+
+        #carForm button:hover {
+
+            background-color: #27ae60;
+
+        }
+
+ 
+
+        .delete-button {
+
+            background-color: #3c5be7;
+
+            color: #fff;
+
+            border: none;
+
+            padding: 20px;
+
+            cursor: pointer;
+
+            display: block;
+
+            margin: 10px auto;
+
+            border-radius: 10px;
+
+            width: 100px;
+
+        }
+
+ 
+
+        .delete-button:hover {
+
+            background-color: #c0392b;
+
+        }
+        #search-container {
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+   
+}
+
+#search {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    width: 200px; /* Adjust the width as needed */
+    background-color: yellow;
+}
+
+
+    </style>
+
+</head>
+
+ 
+
+<body>
+
+ 
+
+    <div id="menu">
+
+        <h2>Məlumatlar</h2>
+
+        <form id="carForm">
+
+            <label for="carName">Maşın adı:</label>
+
+            <input type="text" id="carName" name="carName" required>
+
+ 
+
+            <label for="carYear">Maşının ili:</label>
+
+            <input type="number" id="carYear" name="carYear" required>
+
+ 
+
+            <label for="carPrice">Maşının qiyməti:</label>
+
+            <input type="number" id="carPrice" name="carPrice" required>
+
+ 
+
+            <label for="carImage">Maşının şəkli (URL):</label>
+
+            <input type="url" id="carImage" name="carImage" required>
+
+ 
+
+            <button type="submit">Yadda saxla</button>
+
+        </form>
+
+    </div>
+
+ 
+
+    <button id="openMenu">Əlavə et</button>
+
+ 
+    <div id="search-container">
+        <input type="text" id="search" placeholder="Search...">
+    </div>
+    
+    <div id="carsContainer">
+
+    </div>
+
+ 
+
+    <script src=https://code.jquery.com/jquery-3.6.4.min.js></script>
+
+    <script>
+
+       
+
+        function loadCarsFromLocalStorage() {
+
+            let cars = JSON.parse(localStorage.getItem("cars")) || [];
+
+            cars.forEach(createCarInfoDiv);
+
+        }
+
+   
+
+        function saveCarToLocalStorage(car) {
+
+            let cars = JSON.parse(localStorage.getItem("cars")) || [];
+
+            car.id = cars.length;
+
+            cars.push(car);
+
+            localStorage.setItem("cars", JSON.stringify(cars));
+
+        }
+
+   
+
+       
+
+        function removeCarFromLocalStorage(id) {
+
+            let cars = JSON.parse(localStorage.getItem("cars")) || [];
+
+            let updatedCars = cars.filter(function (car) {
+
+                return car.id !== id;
+
+            });
+
+            localStorage.setItem("cars", JSON.stringify(updatedCars));
+
+        }
+
+        function createCarInfoDiv(car) {
+
+            var carInfoDiv = $("<div>").addClass("car-info");
+
+            carInfoDiv.append("<p class='nameCar' ><strong >Maşın adı:</strong> " + car.name + "</p>");
+
+            carInfoDiv.append("<p><strong>Maşının ili:</strong> " + car.year + "</p>");
+
+            carInfoDiv.append("<p><strong>Maşının qiyməti:</strong> " + car.price + "</p>");
+
+            carInfoDiv.append("<img src='" + car.image + "' alt='" + car.name + "'>");
+
+   
+
+           
+            let deleteButton = $("<button>")
+
+                .addClass("delete-button")
+
+                .text("Sil")
+
+                .click(function () {
+
+                    carInfoDiv.remove();
+
+                    removeCarFromLocalStorage(car.id);
+
+                });
+
+   
+
+            carInfoDiv.append(deleteButton);
+
+   
+
+           
+
+            $("#carsContainer").append(carInfoDiv);
+
+        }
+
+   
+
+        $(document).ready(function () {
+
+           
+
+            loadCarsFromLocalStorage();
+
+   
+
+         
+
+            $("#openMenu").click(function () {
+
+                $("#menu").toggle(1000);
+
+            });
+
+   
+
+           
+
+            $("#carForm").submit(function (e) {
+
+                e.preventDefault();
+
+               
+
+                let car = {
+
+                    name: $("input[name='carName']").val(),
+
+                    year: $("input[name='carYear']").val(),
+
+                    price: $("input[name='carPrice']").val(),
+
+                    image: $("input[name='carImage']").val()
+
+                };
+
+               
+
+                saveCarToLocalStorage(car);
+
+               
+
+                createCarInfoDiv(car);
+
+             
+
+                $("#carForm")[0].reset();
+
+            });
+
+        });
+        $(document).ready(function(){
+      $("#search").on("keyup", function() {
+        let value = $(this).val().toLowerCase();
+        $(".nameCar").filter(function() {
+          $(this).closest("div").toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+      });
+    });
+    </script>
+</body>
+</html>
+
+ 
